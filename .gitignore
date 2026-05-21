@@ -1,0 +1,13 @@
+AWSCLIV2.msi
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Node modules
+node_modules/
+lambda/node_modules/
+
+# General
+.env
+.vscode/
+npm-debug.log*
