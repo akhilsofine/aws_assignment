@@ -1,64 +1,388 @@
-git push -u origin main# AWS Multi-Team Report Processing Platform
+# AWS Multi-Team Report Processing Platform
 
-This project implements a backend API and serverless processing pipeline for a Multi-Team Report Management System, as per the AWS Cloud Assignment.
+A scalable cloud-native backend system built using AWS services, Node.js, Express, PostgreSQL, and Terraform for managing teams, employees, and automated report processing workflows.
 
-## Architecture and Infrastructure
+This project demonstrates Infrastructure as Code (IaC), serverless processing, cloud storage management, and REST API development using modern AWS architecture.
 
-- **EC2 + Application Load Balancer (ALB)**: The Node.js Express API (`backend/server.js`) should be deployed on an EC2 instance. An ALB routes traffic to the EC2 target group and provides the DNS name to access the APIs.
-- **Relational Database Service (RDS)**: A Multi-AZ RDS PostgreSQL instance stores metadata.
-- **S3 Bucket**: A bucket named `team-report-storage` stores the uploaded reports in `pending` and `processed` folders.
-- **AWS Lambda**: The `lambda/index.js` script processes pending reports from S3 by counting their lines, updates the RDS, and moves them to the `processed` folder.
-- **EventBridge**: Triggers the Lambda function every minute using the cron expression `cron(* * * * ? *)`.
+---
 
-## Setup and Deployment
+# Project Architecture
 
-### 1. Database (RDS PostgreSQL)
-Run the SQL scripts provided in `schema.sql` against your RDS instance to create the necessary tables. Sample queries for your assignments are in `queries.sql`.
+## Technologies Used
 
-### 2. Backend API
-1. Navigate to the `backend` folder.
-2. Run `npm install`.
-3. Set the following environment variables:
-   - `DB_USER`, `DB_HOST`, `DB_NAME`, `DB_PASSWORD`, `DB_PORT`
-   - `AWS_REGION`
-   - `S3_BUCKET_NAME`
-4. Start the server: `node server.js`
+| Technology | Purpose |
+|---|---|
+| Node.js | Backend Runtime |
+| Express.js | REST API Framework |
+| PostgreSQL | Relational Database |
+| AWS EC2 | Backend Hosting |
+| Application Load Balancer (ALB) | Traffic Routing |
+| AWS RDS | Managed PostgreSQL Database |
+| Amazon S3 | File Storage |
+| AWS Lambda | Serverless Processing |
+| EventBridge | Scheduled Automation |
+| Terraform | Infrastructure Provisioning |
 
-### 3. AWS Lambda Processor
-1. Navigate to the `lambda` folder.
-2. Zip the contents (including `node_modules` after running `npm install`).
-3. Upload the zip to your AWS Lambda function (`daily-team-report-processor`).
-4. Set the same Database and S3 environment variables on the Lambda configuration.
-5. Create an EventBridge Rule:
-   - **Schedule**: `cron(* * * * ? *)`
-   - **Target**: Your Lambda function.
+---
 
-## API Documentation
+# System Workflow
 
-### Employee APIs
-- `POST /employees`
-  - Body: `{ "name": "John Doe", "email": "john@example.com" }`
-- `GET /employees`
+1. Employees and Teams are created using REST APIs.
+2. Employees are mapped to Teams.
+3. Reports are uploaded through backend APIs.
+4. Uploaded reports are stored in the S3 `pending/` folder.
+5. EventBridge triggers the Lambda function every minute.
+6. Lambda processes reports by:
+   - Reading report contents
+   - Counting lines
+   - Updating metadata in RDS
+   - Moving processed reports to `processed/`
 
-### Team APIs
-- `POST /teams`
-  - Body: `{ "team_name": "Analytics Team" }`
-- `GET /teams`
+---
 
-### Employee-Team Mapping APIs
-- `POST /teams/:teamId/employees/:employeeId`
-  - Maps an employee to a team (Many-to-Many).
-- `GET /teams/:teamId/employees`
-  - Lists all employees in a specific team.
-- `GET /employees/:employeeId/teams`
-  - Lists all teams for a specific employee.
+# Project Structure
 
-### Report APIs
-- `POST /upload-report`
-  - Content-Type: `multipart/form-data`
-  - Form Fields: 
-    - `file`: (The report file)
-    - `team_id`: (ID of the team)
-    - `uploaded_by`: (Employee ID)
-- `GET /reports`
-- `GET /teams/:teamId/reports`
+```bash
+aws assignment/
+│
+├── backend/
+│   ├── server.js
+│   ├── package.json
+│
+├── lambda/
+│   ├── index.js
+│   ├── package.json
+│
+├── terraform/
+│   ├── main.tf
+│   ├── ec2_alb.tf
+│   ├── iam.tf
+│   ├── lambda.tf
+│   ├── rds.tf
+│   ├── s3.tf
+│
+├── schema.sql
+├── queries.sql
+├── ER_Diagram.md
+├── Architecture_Diagram.png
+├── README.md
+```
+
+---
+
+# Infrastructure as Code (Terraform)
+
+Terraform was used to automate provisioning and configuration of AWS resources.
+
+## Provisioned Resources
+
+- EC2 Instance
+- Application Load Balancer
+- Target Groups
+- Security Groups
+- RDS PostgreSQL Database
+- S3 Bucket
+- Lambda Function
+- IAM Roles and Policies
+- EventBridge Scheduler
+
+---
+
+# Terraform Setup
+
+## Initialize Terraform
+
+```bash
+terraform init
+```
+
+## Validate Configuration
+
+```bash
+terraform validate
+```
+
+## Preview Infrastructure
+
+```bash
+terraform plan
+```
+
+## Apply Infrastructure
+
+```bash
+terraform apply
+```
+
+---
+
+# Backend Setup
+
+## Navigate to Backend Folder
+
+```bash
+cd backend
+```
+
+## Install Dependencies
+
+```bash
+npm install
+```
+
+## Configure Environment Variables
+
+Create a `.env` file:
+
+```env
+DB_USER=your_db_user
+DB_HOST=your_rds_endpoint
+DB_NAME=your_db_name
+DB_PASSWORD=your_password
+DB_PORT=5432
+
+AWS_REGION=your_region
+S3_BUCKET_NAME=team-report-storage
+```
+
+## Run Server
+
+```bash
+node server.js
+```
+
+---
+
+# Database Setup
+
+Create a PostgreSQL RDS instance and execute:
+
+```sql
+schema.sql
+```
+
+Sample SQL queries are available in:
+
+```sql
+queries.sql
+```
+
+---
+
+# S3 Bucket Structure
+
+```bash
+team-report-storage/
+│
+├── pending/
+├── processed/
+```
+
+---
+
+# Lambda Setup
+
+## Navigate to Lambda Folder
+
+```bash
+cd lambda
+```
+
+## Install Dependencies
+
+```bash
+npm install
+```
+
+## Create Deployment Package
+
+```bash
+zip -r lambda.zip .
+```
+
+## Upload to AWS Lambda
+
+Lambda Function Name:
+
+```bash
+daily-team-report-processor
+```
+
+---
+
+# EventBridge Scheduler
+
+Configure EventBridge Rule with:
+
+```bash
+cron(* * * * ? *)
+```
+
+This triggers the Lambda function every minute.
+
+---
+
+# API Documentation
+
+# Employee APIs
+
+## Create Employee
+
+```http
+POST /employees
+```
+
+### Request Body
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+```
+
+---
+
+## Get All Employees
+
+```http
+GET /employees
+```
+
+---
+
+# Team APIs
+
+## Create Team
+
+```http
+POST /teams
+```
+
+### Request Body
+
+```json
+{
+  "team_name": "Analytics Team"
+}
+```
+
+---
+
+## Get All Teams
+
+```http
+GET /teams
+```
+
+---
+
+# Employee-Team Mapping APIs
+
+## Assign Employee to Team
+
+```http
+POST /teams/:teamId/employees/:employeeId
+```
+
+---
+
+## Get Employees in Team
+
+```http
+GET /teams/:teamId/employees
+```
+
+---
+
+## Get Teams for Employee
+
+```http
+GET /employees/:employeeId/teams
+```
+
+---
+
+# Report APIs
+
+## Upload Report
+
+```http
+POST /upload-report
+```
+
+### Content-Type
+
+```bash
+multipart/form-data
+```
+
+### Form Fields
+
+| Field | Description |
+|---|---|
+| file | Report File |
+| team_id | Team ID |
+| uploaded_by | Employee ID |
+
+---
+
+## Get All Reports
+
+```http
+GET /reports
+```
+
+---
+
+## Get Reports by Team
+
+```http
+GET /teams/:teamId/reports
+```
+
+---
+
+# Testing APIs
+
+Example cURL request:
+
+```bash
+curl -X GET http://<ALB-DNS>/employees
+```
+
+---
+
+# Deployment Verification
+
+The following components were successfully tested:
+
+- EC2 Backend Deployment
+- Application Load Balancer Routing
+- PostgreSQL RDS Connectivity
+- S3 File Uploads
+- Lambda Execution
+- EventBridge Scheduling
+- REST API Responses
+
+---
+
+# Future Enhancements
+
+- JWT Authentication
+- Docker Containerization
+- CI/CD Pipeline
+- CloudWatch Monitoring
+- Terraform Remote State Management
+
+---
+
+# Author
+
+Akhil Raj.R
+
+---
+
+# License
+
+This project was created for educational and academic purposes.
